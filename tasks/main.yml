@@ -1,0 +1,31 @@
+---
+
+- file:
+   path: "{{ httpd_conf }}"
+   state: directory
+
+- file:
+   path: "/var/www/{{ vhosts_dir }}"
+   state: directory
+   owner: root
+   group: daemon
+
+- file:
+   path: "/var/www/{{ vhosts_dir }}/{{ domain }}"
+   state: directory
+   owner: root
+   group: daemon
+
+- blockinfile: |
+      dest=/etc/acme-client.conf backup=yes
+      content="domain {{ domain }} {
+            alternative names { {{ alias }} }
+            domain key "/etc/ssl/private/{{ domain }}.key"
+            domain certificate "/etc/ssl/{{ domain }}.crt"
+            domain full chain certificate "/etc/ssl/{{ domain }}.fullchain.pem"
+            sign with letsencrypt
+      }"
+      insertafter=EOF
+
+- template: src=httpd.conf.j2 dest="/etc/httpd.conf" owner="root" group="wheel" mode="0644"
+- template: src=site.conf.j2 dest="/etc/httpd/{{ domain }}.conf" owner="root" group="wheel" mode="0644"

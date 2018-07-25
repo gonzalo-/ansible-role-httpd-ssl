@@ -1,0 +1,39 @@
+## {{ domain }} - HTTP
+server "{{ domain }}" {
+	alias "{{ alias }}"
+
+	listen on $ext_addr port 80
+
+	## acme-client
+	location "/.well-known/acme-challenge/*" {
+		root "/acme"
+		root strip 2
+	}
+
+	## rdr from http -> https
+	#location "/*" { block return 301 "https://$SERVER_NAME$REQUEST_URI" }
+
+	root "{{ vhosts_dir }}/{{ domain }}"
+}
+
+## {{ domain }} - HTTPS
+server "{{ domain }}" {
+	alias "{{ alias }}"
+
+	listen on $ext_addr tls port 443
+        
+	tls {
+	certificate "/etc/ssl/{{ domain }}.fullchain.pem"
+	key "/etc/ssl/private/{{ domain }}.key"
+	}
+
+	log { access "{{ domain }}-access.log", error "{{ domain }}-error.log" }
+
+	#location "*.php" {
+	#	fastcgi socket "/run/php-fpm.sock"
+	#}
+
+	directory { index index.html }
+
+	root "{{ vhosts_dir }}/{{ domain }}"
+}

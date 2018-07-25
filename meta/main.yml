@@ -1,0 +1,17 @@
+galaxy_info:
+  author: gonzalo-
+  description: Role to setup httpd server with ssl on OpenBSD.
+  license: BSD
+  min_ansible_version: 1.9
+  galaxy_tags:
+  - openbsd
+  - httpd
+  - ssl
+  - tls
+  - acme-client
+  - letsencrypt
+  platforms:
+  - name: OpenBSD
+    versions:
+     - 6.1
+  dependencies: []

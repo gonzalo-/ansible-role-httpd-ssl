@@ -7,7 +7,7 @@ server "{{ domain }}" {
 	## acme-client
 	location "/.well-known/acme-challenge/*" {
 		root "/acme"
-		root strip 2
+		request strip 2
 	}
 
 	## rdr from http -> https

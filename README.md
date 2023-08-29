@@ -76,6 +76,93 @@ Example Playbook
   become_method: doas
 ```
 
+Example Running
+---------------
+
+```
+$ ansible-playbook -i tests/inventory tests/test.yml                                                                            
+
+PLAY [test] ********************************************************************************************************************************************************************************
+
+TASK [/tmp/ansible-role-httpd-ssl : Check if httpd.conf exists] ****************************************************************************************************************************
+[WARNING]: Platform openbsd on host 172.23.169.196 is using the discovered Python interpreter at /usr/local/bin/python3.11, but future installation of another Python interpreter could
+change the meaning of that path. See https://docs.ansible.com/ansible-core/2.15/reference_appendices/interpreter_discovery.html for more information.
+ok: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Copy httpd.conf from template if not exists] ***********************************************************************************************************
+changed: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Check if acme-client.conf exists] **********************************************************************************************************************
+ok: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Check if etc vhosts directory exist] *******************************************************************************************************************
+ok: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Create etc vhosts directory] ***************************************************************************************************************************
+changed: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Template vhost files] **********************************************************************************************************************************
+changed: [172.23.169.196] => (item={'domain': 'foobar.com', 'alias': ['www.foobar.com', 'v6.foobar.com']})
+changed: [172.23.169.196] => (item={'domain': 'foo.com', 'alias': ['www.foo.com']})
+changed: [172.23.169.196] => (item={'domain': 'foobar.org', 'alias': ['blog.foo.org']})
+changed: [172.23.169.196] => (item={'domain': 'test.org', 'alias': ['www.tests.org']})
+changed: [172.23.169.196] => (item={'domain': 'test.net', 'alias': ['www.tests.net']})
+changed: [172.23.169.196] => (item={'domain': 'test.com', 'alias': ['www.tests.com']})
+changed: [172.23.169.196] => (item={'domain': 'openbsd.org', 'alias': ['www.openbsd.org']})
+
+TASK [/tmp/ansible-role-httpd-ssl : Check if vhosts www directory exist] *******************************************************************************************************************
+ok: [172.23.169.196] => (item={'domain': 'foobar.com', 'alias': ['www.foobar.com', 'v6.foobar.com']})
+ok: [172.23.169.196] => (item={'domain': 'foo.com', 'alias': ['www.foo.com']})
+ok: [172.23.169.196] => (item={'domain': 'foobar.org', 'alias': ['blog.foo.org']})
+ok: [172.23.169.196] => (item={'domain': 'test.org', 'alias': ['www.tests.org']})
+ok: [172.23.169.196] => (item={'domain': 'test.net', 'alias': ['www.tests.net']})
+ok: [172.23.169.196] => (item={'domain': 'test.com', 'alias': ['www.tests.com']})
+ok: [172.23.169.196] => (item={'domain': 'openbsd.org', 'alias': ['www.openbsd.org']})
+
+TASK [/tmp/ansible-role-httpd-ssl : Ensure htdocs directories exist] ***********************************************************************************************************************
+changed: [172.23.169.196] => (item={'domain': 'foobar.com', 'alias': ['www.foobar.com', 'v6.foobar.com']})
+changed: [172.23.169.196] => (item={'domain': 'foo.com', 'alias': ['www.foo.com']})
+changed: [172.23.169.196] => (item={'domain': 'foobar.org', 'alias': ['blog.foo.org']})
+changed: [172.23.169.196] => (item={'domain': 'test.org', 'alias': ['www.tests.org']})
+changed: [172.23.169.196] => (item={'domain': 'test.net', 'alias': ['www.tests.net']})
+changed: [172.23.169.196] => (item={'domain': 'test.com', 'alias': ['www.tests.com']})
+changed: [172.23.169.196] => (item={'domain': 'openbsd.org', 'alias': ['www.openbsd.org']})
+
+TASK [/tmp/ansible-role-httpd-ssl : Template vhost files] **********************************************************************************************************************************
+skipping: [172.23.169.196] => (item={'domain': 'foobar.com', 'alias': ['www.foobar.com', 'v6.foobar.com']}) 
+skipping: [172.23.169.196] => (item={'domain': 'foo.com', 'alias': ['www.foo.com']}) 
+skipping: [172.23.169.196] => (item={'domain': 'foobar.org', 'alias': ['blog.foo.org']}) 
+skipping: [172.23.169.196] => (item={'domain': 'test.org', 'alias': ['www.tests.org']}) 
+skipping: [172.23.169.196] => (item={'domain': 'test.net', 'alias': ['www.tests.net']}) 
+skipping: [172.23.169.196] => (item={'domain': 'test.com', 'alias': ['www.tests.com']}) 
+skipping: [172.23.169.196] => (item={'domain': 'openbsd.org', 'alias': ['www.openbsd.org']}) 
+skipping: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Add vhost includes to httpd.conf] **********************************************************************************************************************
+changed: [172.23.169.196] => (item={'domain': 'foobar.com', 'alias': ['www.foobar.com', 'v6.foobar.com']})
+changed: [172.23.169.196] => (item={'domain': 'foo.com', 'alias': ['www.foo.com']})
+changed: [172.23.169.196] => (item={'domain': 'foobar.org', 'alias': ['blog.foo.org']})
+changed: [172.23.169.196] => (item={'domain': 'test.org', 'alias': ['www.tests.org']})
+changed: [172.23.169.196] => (item={'domain': 'test.net', 'alias': ['www.tests.net']})
+changed: [172.23.169.196] => (item={'domain': 'test.com', 'alias': ['www.tests.com']})
+changed: [172.23.169.196] => (item={'domain': 'openbsd.org', 'alias': ['www.openbsd.org']})
+
+TASK [/tmp/ansible-role-httpd-ssl : Copy acme-client.conf if not exists] *******************************************************************************************************************
+changed: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Add acme-client configuration] *************************************************************************************************************************
+changed: [172.23.169.196]
+
+TASK [/tmp/ansible-role-httpd-ssl : Reload service httpd] **********************************************************************************************************************************
+changed: [172.23.169.196]
+
+PLAY RECAP *********************************************************************************************************************************************************************************
+172.23.169.196             : ok=12   changed=8    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+```
+
+After a successfully ran, you will see httpd(8) running on the server only in http://, after running "acme-client" on
+each domain you added you should be able to uncomment the https:// chunk on the vhost config and reload the service.
+
 License
 -------
 

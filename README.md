@@ -11,7 +11,13 @@ OpenBSD >=6.1 -{release,stable,current}
 Notes
 -----
 
-You need to run this after the playbook:
+To add the domains you need to modify the file "defaults/main.yml" and adapt it to
+what you want, if you have already a /etc/httpd.conf the playbook will just add the
+includes of the vhosts added (BE CAREFUL BARELY TESTED :) otherwise it will copy the
+httpd.conf in the templates directory and also add at the end the includes.
+
+You need to run this after the playbook to create the certificates, remember to have the
+dns entry for the added domains.
 
 ```
 # acme-client -vAD foobar.com
@@ -21,12 +27,19 @@ To renew the certs a cronjob must be placed:
 
 ```
 #!/bin/sh
-acme-client foobar.com
+## debug
+#set -x
 
-if [ $? -eq 0 ]
-then
-	/etc/rc.d/httpd reload
-fi
+UPDATE=0
+
+for domain in $(awk '/^domain/ { print $2 }' /etc/acme-client.conf)
+do
+	acme-client $domain
+	ocspcheck -vNo /etc/ssl/$domain.{ocsp,crt}
+	if [ $? -eq 0 ]; then
+		UPDATE=1
+	fi
+done
 ```
 
 We asume that, you already have an entry on pf.conf like:
@@ -50,25 +63,17 @@ pass in on $ext_if proto tcp from any to any port 443 \
 ...
 ```
 
-And also you already have a DNS entry for your domain.
-
-
 Example Playbook
 ----------------
 
 ```
 ---
 - hosts: test
-   roles:
-     - role: gonzalo-.httpd-ssl
-   become: yes
-   become_method: doas
-
-   vars:
-    domain: 'foobar.com'
-    alias: 'www.foobar.com'
-    httpd_conf: '/etc/httpd'
-    www_dir: '/var/www/sites'
+  gather_facts: false
+  roles:
+    - /home/gonzalo/src/ansible-role-httpd
+  become: yes
+  become_method: doas
 ```
 
 License
@@ -79,4 +84,4 @@ BSD
 Author Information
 ------------------
 
-https://x61.sh/
+https://x61.ar/

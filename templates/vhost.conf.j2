@@ -1,0 +1,40 @@
+## {{ item.domain }} - HTTP
+server "{{ item.domain }}" {
+    {% if item.alias %}
+    {% for alias in item.alias %}
+    alias "{{ alias }}"
+    {% endfor %}
+    {% endif %}
+
+    listen on * port 80
+
+    ## acme-client
+    location "/.well-known/acme-challenge/*" {
+        root "/acme"
+        request strip 2
+    }
+
+    root "/{{ item.domain }}/htdocs"
+}
+
+## {{ item.domain }} - HTTPS
+#server "{{ item.domain }}" {
+#    {% if item.alias %}
+#    {% for alias in item.alias %}
+#    alias "{{ alias }}"
+#    {% endfor %}
+#    {% endif %}
+
+#    listen on * tls port 443
+
+#    tls {
+#        certificate "/etc/ssl/{{ item.domain }}.fullchain.pem"
+#        key "/etc/ssl/private/{{ item.domain }}.key"
+#    }
+
+#    log { access "{{ item.domain }}-access.log", error "{{ item.domain }}-error.log" }
+
+#    directory { index index.html }
+
+#    root "{{ vhosts_www }}/{{ item.domain }}/htdocs"
+#}

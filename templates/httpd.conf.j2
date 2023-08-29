@@ -1,14 +1,9 @@
-ext_addr="*"
-
 types { include "/usr/share/misc/mime.types" }
-
-## Sites
-include "{{ httpd_conf }}/{{ domain }}.conf"
 
 ## Default
 server "default" {
-	listen on $ext_addr port 80
-	listen on $ext_addr port 443
+	listen on * port 80
+	listen on * port 443
 
 	alias match "%d+%.%d+%.%d+%.%d+"
 	alias match "%w*::*"
@@ -17,7 +12,7 @@ server "default" {
 
 	## PHP-FPM
 	#location "*.php" {
-	#	fastcgi socket "/run/php-fpm.sock"
+	#   fastcgi socket "/run/php-fpm.sock"
 	#}
 	##
 
@@ -25,4 +20,5 @@ server "default" {
 
 	root "/htdocs"
 }
+
 

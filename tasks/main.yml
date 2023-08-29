@@ -1,31 +1,104 @@
 ---
+- name: Check if httpd.conf exists
+  stat:
+    path: '/etc/httpd.conf'
+  register: httpd_conf_status
 
-- file:
-   path: "{{ httpd_conf }}"
-   state: directory
+- name: Copy httpd.conf from template if not exists
+  ansible.builtin.template:
+    src: httpd.conf.j2
+    dest: /etc/httpd.conf
+    owner: root
+    group: wheel
+    mode: '0644'
+  when: not httpd_conf_status.stat.exists
 
-- file:
-   path: "/var/www/{{ vhosts_dir }}"
-   state: directory
-   owner: root
-   group: daemon
+- name: Check if acme-client.conf exists
+  ansible.builtin.stat:
+    path: /etc/acme-client.conf
+  register: acme_status
 
-- file:
-   path: "/var/www/{{ vhosts_dir }}/{{ domain }}"
-   state: directory
-   owner: root
-   group: daemon
+- name: Check if etc vhosts directory exist
+  stat:
+    path: "{{ vhosts_dir }}"
+  register: vhosts_dir_status
 
-- blockinfile: |
-      dest=/etc/acme-client.conf backup=yes
-      content="domain {{ domain }} {
-            alternative names { {{ alias }} }
-            domain key "/etc/ssl/private/{{ domain }}.key"
-            domain certificate "/etc/ssl/{{ domain }}.crt"
-            domain full chain certificate "/etc/ssl/{{ domain }}.fullchain.pem"
-            sign with letsencrypt
-      }"
-      insertafter=EOF
+- name: Create etc vhosts directory
+  ansible.builtin.file:
+    path: "{{ vhosts_dir }}"
+    state: directory
+    owner: root
+    group: wheel
+    mode: '0755'
+  when: not vhosts_dir_status.stat.exists
 
-- template: src=httpd.conf.j2 dest="/etc/httpd.conf" owner="root" group="wheel" mode="0644"
-- template: src=site.conf.j2 dest="/etc/httpd/{{ domain }}.conf" owner="root" group="wheel" mode="0644"
+- name: Template vhost files
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: "{{ vhosts_dir }}/{{ item.domain }}.conf"
+    owner: root
+    group: wheel
+    mode: '0644'
+  loop: "{{ domain_list }}"
+
+- name: Check if vhosts www directory exist
+  ansible.builtin.stat:
+    path: "{{ vhosts_www }}/{{ item.domain }}/htdocs"
+  loop: "{{ domain_list }}"
+  register: vhosts_www_status
+
+- name: Ensure htdocs directories exist
+  ansible.builtin.file:
+    path: "{{ vhosts_www }}/{{ item.domain }}/htdocs"
+    state: directory
+    owner: root
+    group: wheel
+    mode: '0755'
+  loop: "{{ domain_list }}"
+  when: not (vhosts_www_status.results[loop.index0].stat.exists | default(false))
+
+- name: Template vhost files
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: "{{ vhosts_dir }}/{{ item.domain }}.conf"
+    owner: root
+    group: wheel
+    mode: '0644'
+  loop: "{{ domain_list }}"
+  when: httpd_conf_status.stat.exists
+
+- name: Add vhost includes to httpd.conf
+  ansible.builtin.lineinfile:
+    path: /etc/httpd.conf
+    line: "include \"{{ vhosts_dir }}/{{ item.domain }}.conf\""
+    regexp: '^include "{{ vhosts_dir }}/{{ item.domain }}\.conf"$'
+    create: yes
+  loop: "{{ domain_list }}"
+
+- name: Copy acme-client.conf if not exists
+  ansible.builtin.copy:
+    src: "/etc/examples/acme-client.conf"
+    dest: "/etc/acme-client.conf"
+    owner: root
+    group: wheel
+    mode: '0644'
+  when: not acme_status.stat.exists
+
+- name: Add acme-client configuration
+  ansible.builtin.blockinfile:
+    dest: /etc/acme-client.conf
+    block: |
+      {% for domain_entry in domain_list %}
+      domain {{ domain_entry.domain }} {
+          alternative names { {% for alias in domain_entry.alias %}{{ alias }}{% if not loop.last %} {% endif %}{% endfor %} }
+          domain key "/etc/ssl/private/{{ domain_entry.domain }}.key"
+          domain full chain certificate "/etc/ssl/{{ domain_entry.domain }}.crt"
+          sign with letsencrypt
+      }
+      {% endfor %}
+    insertafter: EOF
+
+- name: Reload service httpd
+  ansible.builtin.service:
+    name: httpd
+    state: reloaded

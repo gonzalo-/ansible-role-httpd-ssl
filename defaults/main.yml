@@ -1,2 +1,27 @@
 ---
-# defaults file for httpd-ssl
+# defaults file for httpd_domain_config
+vhosts_dir: '/etc/httpd.d'
+vhosts_www: '/var/www'
+domain_list:
+  - domain: foobar.com
+    alias:
+      - www.foobar.com
+      - v6.foobar.com
+  - domain: foo.com
+    alias:
+      - www.foo.com
+  - domain: foobar.org
+    alias:
+      - blog.foo.org
+  - domain: test.org
+    alias:
+      - www.tests.org
+  - domain: test.net
+    alias:
+      - www.tests.net
+  - domain: test.com
+    alias:
+      - www.tests.com
+  - domain: openbsd.org
+    alias:
+      - www.openbsd.org
